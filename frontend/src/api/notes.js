@@ -7,3 +7,7 @@ export function createNote({ title, content, type, coinIds, tags }) {
 export function getMyNotes() {
   return apiClient.get("/notes");
 }
+
+export function deleteNote(id) {
+  return apiClient.delete(`/notes/${id}`);
+}

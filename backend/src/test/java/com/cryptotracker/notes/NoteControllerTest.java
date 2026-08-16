@@ -1,5 +1,6 @@
 package com.cryptotracker.notes;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -181,5 +182,59 @@ class NoteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].title").value("Mi nota"));
+    }
+
+    @Test
+    void ownerCanDeleteTheirOwnNote() throws Exception {
+        String body = mockMvc.perform(post("/api/notes")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Nota a borrar",
+                                  "content": "Contenido",
+                                  "type": "OBSERVACION",
+                                  "coinIds": ["bitcoin"]
+                                }
+                                """))
+                .andReturn().getResponse().getContentAsString();
+        String noteId = objectMapper.readTree(body).get("id").asString();
+
+        mockMvc.perform(delete("/api/notes/" + noteId).header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/notes").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void cannotDeleteAnotherUsersNote() throws Exception {
+        String body = mockMvc.perform(post("/api/notes")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Nota protegida",
+                                  "content": "Contenido",
+                                  "type": "OBSERVACION",
+                                  "coinIds": ["bitcoin"]
+                                }
+                                """))
+                .andReturn().getResponse().getContentAsString();
+        String noteId = objectMapper.readTree(body).get("id").asString();
+
+        String otherEmail = "notes-deleter-" + UUID.randomUUID() + "@example.com";
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RegisterRequest(otherEmail, "Str0ngPass!", "Other"))));
+        String otherLoginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(otherEmail, "Str0ngPass!"))))
+                .andReturn().getResponse().getContentAsString();
+        String otherToken = objectMapper.readTree(otherLoginBody).get("accessToken").asString();
+
+        mockMvc.perform(delete("/api/notes/" + noteId).header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isNotFound());
     }
 }

@@ -1,10 +1,12 @@
 package com.cryptotracker.notes;
 
+import com.cryptotracker.common.ApiException;
 import com.cryptotracker.common.HtmlSanitizer;
 import com.cryptotracker.users.UserRepository;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,5 +41,16 @@ public class NoteService {
         return noteRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
                 .map(NoteResponse::from)
                 .toList();
+    }
+
+    public void deleteNote(UUID userId, UUID noteId) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOTE_NOT_FOUND", "Note not found"));
+
+        if (!note.getUser().getId().equals(userId)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "NOTE_NOT_FOUND", "Note not found");
+        }
+
+        noteRepository.delete(note);
     }
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCryptoMarkets } from "../api/cryptos";
-import { getMyNotes } from "../api/notes";
+import { getMyNotes, deleteNote } from "../api/notes";
 import Sparkline from "../components/Sparkline";
+import BrandTitle from "../components/BrandTitle";
 import { useAuth } from "../context/AuthContext";
 import { NOTE_TYPE_LABELS } from "../constants/noteTypes";
 
@@ -22,7 +23,7 @@ const changeFormatter = new Intl.NumberFormat("es-ES", {
   signDisplay: "always",
 });
 
-function NotesSummary({ notes, loading }) {
+function NotesSummary({ notes, loading, onDelete, deletingId }) {
   if (loading) return null;
   if (notes.length === 0) return null;
 
@@ -44,6 +45,14 @@ function NotesSummary({ notes, loading }) {
                 </span>
               ))}
             </div>
+            <button
+              type="button"
+              className="note-card-delete"
+              disabled={deletingId === note.id}
+              onClick={() => onDelete(note.id)}
+            >
+              {deletingId === note.id ? "Eliminando..." : "Eliminar"}
+            </button>
           </article>
         ))}
       </div>
@@ -60,6 +69,7 @@ function Dashboard() {
 
   const [notes, setNotes] = useState([]);
   const [notesLoading, setNotesLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,17 +110,38 @@ function Dashboard() {
     };
   }, []);
 
+  async function handleDeleteNote(noteId) {
+    if (!window.confirm("¿Seguro que quieres eliminar esta nota? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    setDeletingId(noteId);
+    try {
+      await deleteNote(noteId);
+      setNotes((prev) => prev.filter((note) => note.id !== noteId));
+    } catch {
+      window.alert("No se pudo eliminar la nota. Inténtalo de nuevo.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <>
     <main className="market">
       <div className="dashboard-header">
-        <h1>Crypto Tracker</h1>
+        <BrandTitle />
         <Link to="/notes/new" className="btn btn-primary btn-primary-round">
           Crear nota
         </Link>
       </div>
 
-      <NotesSummary notes={notes} loading={notesLoading} />
+      <NotesSummary
+        notes={notes}
+        loading={notesLoading}
+        onDelete={handleDeleteNote}
+        deletingId={deletingId}
+      />
 
       {loading && <p>Cargando datos de mercado...</p>}
       {error && <p role="alert">{error}</p>}
