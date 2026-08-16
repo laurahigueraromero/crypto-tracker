@@ -192,6 +192,39 @@ function Dashboard() {
             </table>
           </div>
 
+          <div className="market-cards">
+            {items.map((item, index) => (
+              <article key={item.coinId} className="market-card">
+                <div className="market-card-top">
+                  <span className="market-card-rank">{(page - 1) * PER_PAGE + index + 1}</span>
+                  <img src={item.image} alt="" width={28} height={28} />
+                  <div className="market-card-name">
+                    <span>{item.name}</span>
+                    <span className="market-symbol">{item.symbol}</span>
+                  </div>
+                </div>
+                <div className="market-card-sparkline">
+                  <Sparkline data={item.sparkline7d} width={280} height={40} />
+                </div>
+                <div className="market-card-bottom">
+                  <span className="market-price">
+                    {item.currentPrice != null ? priceFormatter.format(item.currentPrice) : "—"}
+                  </span>
+                  <span
+                    className={
+                      "market-change " +
+                      (item.priceChangePercentage24h >= 0 ? "market-change-up" : "market-change-down")
+                    }
+                  >
+                    {item.priceChangePercentage24h != null
+                      ? changeFormatter.format(item.priceChangePercentage24h / 100)
+                      : "—"}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+
           <div className="market-pagination">
             <button type="button" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
               Anterior
