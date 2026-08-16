@@ -2,6 +2,9 @@
 .env
 *.local
 
+# Internal notes, not for the public repo
+informe_de_errores.md
+
 # Backend (Maven/Java)
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar

@@ -1,8 +1,14 @@
 # PRD — Crypto Tracker
 
-**Versión:** 1.0 (MVP)
-**Fecha:** 2026-08-16
+**Versión:** 1.1 (MVP, en desarrollo)
+**Fecha:** 2026-08-16 · última revisión: 2026-08-16
 **Stack:** Backend Spring Boot (Java) · Frontend React.js · API externa CoinGecko
+
+> Este documento describe el diseño objetivo del producto. El estado real de
+> implementación (qué está construido y qué queda pendiente) se documenta en la
+> §8 y se mantiene al día en [`BACKLOG.md`](BACKLOG.md) y las
+> [issues de GitHub](../../issues) — consúltalas como fuente de verdad sobre el
+> progreso, no este PRD.
 
 ---
 
@@ -348,3 +354,47 @@ Notas propias asociadas a esa cripto concreta (atajo para la ficha de detalle). 
 - [ ] Un usuario no puede leer, editar ni borrar notas o watchlist de otro usuario (verificado por `userId` del token, no por parámetro de request).
 - [ ] Superar el rate limit propio de un endpoint devuelve `429` con mensaje claro.
 - [ ] La app es usable (sin overflow ni elementos rotos) en viewport de 375px de ancho (móvil).
+
+---
+
+## 8. Estado de implementación (MVP)
+
+Resumen de qué parte del diseño descrito arriba está realmente construida a fecha
+de esta revisión. Detalle issue por issue en [`BACKLOG.md`](BACKLOG.md).
+
+### Implementado y verificado
+- **AUTH-1 / AUTH-2** — Registro y login. Contraseña con BCrypt, access token JWT
+  firmado (30 min por defecto). El login también emite un refresh token (opaco,
+  hasheado con SHA-256 antes de persistir), pero **aún no hay endpoint
+  `POST /api/auth/refresh` que lo consuma** — se emite pero no se usa todavía
+  (AUTH-3 pendiente).
+- **STATS-1** — Tabla de mercado vía proxy a CoinGecko, con caché de 60s en
+  backend (Caffeine). El refresco automático cada 60s en frontend (STATS-2) y el
+  selector de moneda (STATS-3) siguen pendientes.
+- **NOTES-1 / NOTES-5** — Crear y borrar notas, asociables a varias criptomonedas,
+  con tipo fijo, tags y contenido escapado (HTML entities) contra XSS. Editar
+  (NOTES-4), filtrar (NOTES-3) y verlas desde la ficha de una cripto (NOTES-2)
+  siguen pendientes — no existe aún ficha de detalle de cripto (STATS-5).
+
+### Modelado pero no activo
+- El modelo `User` ya tiene `failedLoginAttempts` y `lockedUntil` (según §3.1),
+  pero **el login no los usa todavía**: no hay bloqueo tras intentos fallidos
+  (AUTH-4). El frontend tiene el manejo de la respuesta `423` preparado, a la
+  espera de que el backend la emita.
+
+### No iniciado
+Watchlist (WATCH-1), rate limiting propio (RATE-1), perfil editable (AUTH-6),
+logout que revoque el refresh token (AUTH-5), búsqueda y ficha de detalle de
+criptomonedas (STATS-4/STATS-5). Todo el roadmap de iteración 2 (§2.2) sigue sin
+empezar.
+
+### Decisiones tomadas durante la implementación (no cambian el diseño, sí el cómo)
+- El backend corre sobre una versión de Spring Boot que reestructuró varios
+  módulos internamente (Jackson 3, autoconfiguración de tests, caché) — el
+  detalle técnico está en `informe_de_errores.md` (no versionado en el repo).
+- El frontend migró a **pnpm** con `ignore-scripts=true` como refuerzo de
+  seguridad de la cadena de suministro (ningún paquete actual necesita scripts
+  de instalación).
+- CORS se amplió más allá de `localhost` para aceptar orígenes de red local
+  (`192.168.*.*`, `10.*.*.*`), pensado para pruebas desde el móvil en la misma
+  red — no es una configuración de producción.
