@@ -3,8 +3,10 @@ package com.cryptotracker.notes;
 import com.cryptotracker.common.HtmlSanitizer;
 import com.cryptotracker.users.UserRepository;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NoteService {
@@ -30,5 +32,12 @@ public class NoteService {
 
         Note saved = noteRepository.save(note);
         return NoteResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NoteResponse> listNotesForUser(UUID userId) {
+        return noteRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
+                .map(NoteResponse::from)
+                .toList();
     }
 }

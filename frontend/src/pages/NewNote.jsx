@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCryptoMarkets } from "../api/cryptos";
 import { createNote } from "../api/notes";
-
-const NOTE_TYPES = [
-  { value: "PREDICCION", label: "Predicción" },
-  { value: "MOTIVO_COMPRA", label: "Motivo de compra" },
-  { value: "MOTIVO_VENTA", label: "Motivo de venta" },
-  { value: "OBSERVACION", label: "Observación" },
-];
+import { NOTE_TYPES } from "../constants/noteTypes";
 
 function validate({ title, content, coinIds }) {
   const errors = {};
@@ -83,21 +77,26 @@ function NewNote() {
     <main className="new-note">
       <h1>Nueva nota</h1>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="note-form" onSubmit={handleSubmit} noValidate>
         <label htmlFor="title">Título</label>
+        <br />
         <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <br />
         {errors.title && <p role="alert">{errors.title}</p>}
 
         <label htmlFor="content">Contenido</label>
+        <br />
         <textarea
           id="content"
           rows={5}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
+        <br />
         {errors.content && <p role="alert">{errors.content}</p>}
 
         <label htmlFor="type">Tipo</label>
+        <br />
         <select id="type" value={type} onChange={(e) => setType(e.target.value)}>
           {NOTE_TYPES.map((option) => (
             <option key={option.value} value={option.value}>
@@ -105,30 +104,36 @@ function NewNote() {
             </option>
           ))}
         </select>
+        <br />
 
         <label htmlFor="tags">Tags (separados por comas)</label>
+        <br />
         <input id="tags" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} />
+        <br />
 
-        <fieldset>
+        <fieldset className="coin-fieldset">
           <legend>Criptomonedas asociadas</legend>
           {loadingCoins && <p>Cargando criptomonedas...</p>}
-          {!loadingCoins &&
-            coins.map((coin) => (
-              <label key={coin.coinId} className="coin-checkbox">
-                <input
-                  type="checkbox"
-                  checked={coinIds.includes(coin.coinId)}
-                  onChange={() => toggleCoin(coin.coinId)}
-                />
-                {coin.name} ({coin.symbol.toUpperCase()})
-              </label>
-            ))}
+          {!loadingCoins && (
+            <div className="coin-checkbox-grid">
+              {coins.map((coin) => (
+                <label key={coin.coinId} className="coin-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={coinIds.includes(coin.coinId)}
+                    onChange={() => toggleCoin(coin.coinId)}
+                  />
+                  {coin.name} ({coin.symbol.toUpperCase()})
+                </label>
+              ))}
+            </div>
+          )}
         </fieldset>
         {errors.coinIds && <p role="alert">{errors.coinIds}</p>}
 
         {serverError && <p role="alert">{serverError}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button type="submit" className="note-submit" disabled={submitting}>
           {submitting ? "Guardando..." : "Guardar nota"}
         </button>
       </form>

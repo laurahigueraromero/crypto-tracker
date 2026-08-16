@@ -1,5 +1,6 @@
 package com.cryptotracker.notes;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -138,5 +139,47 @@ class NoteControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void listsOnlyNotesOwnedByTheAuthenticatedUser() throws Exception {
+        String myNote = """
+                {
+                  "title": "Mi nota",
+                  "content": "Contenido",
+                  "type": "OBSERVACION",
+                  "coinIds": ["bitcoin"]
+                }
+                """;
+        mockMvc.perform(post("/api/notes")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(myNote));
+
+        String otherEmail = "notes-other-" + UUID.randomUUID() + "@example.com";
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RegisterRequest(otherEmail, "Str0ngPass!", "Other"))));
+        String otherLoginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(otherEmail, "Str0ngPass!"))))
+                .andReturn().getResponse().getContentAsString();
+        String otherToken = objectMapper.readTree(otherLoginBody).get("accessToken").asString();
+        mockMvc.perform(post("/api/notes")
+                .header("Authorization", "Bearer " + otherToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "title": "Nota ajena",
+                          "content": "No debería verse",
+                          "type": "OBSERVACION",
+                          "coinIds": ["ethereum"]
+                        }
+                        """));
+
+        mockMvc.perform(get("/api/notes").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("Mi nota"));
     }
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCryptoMarkets } from "../api/cryptos";
+import { getMyNotes } from "../api/notes";
 import Sparkline from "../components/Sparkline";
 import { useAuth } from "../context/AuthContext";
+import { NOTE_TYPE_LABELS } from "../constants/noteTypes";
 
 const PER_PAGE = 20;
 
@@ -20,12 +22,44 @@ const changeFormatter = new Intl.NumberFormat("es-ES", {
   signDisplay: "always",
 });
 
+function NotesSummary({ notes, loading }) {
+  if (loading) return null;
+  if (notes.length === 0) return null;
+
+  return (
+    <section className="notes-summary">
+      <h2>Mis notas</h2>
+      <div className="notes-summary-list">
+        {notes.map((note) => (
+          <article key={note.id} className="note-card">
+            <div className="note-card-header">
+              <strong>{note.title}</strong>
+              <span className="note-card-type">{NOTE_TYPE_LABELS[note.type] || note.type}</span>
+            </div>
+            <p className="note-card-content">{note.content}</p>
+            <div className="note-card-coins">
+              {note.coinIds.map((coinId) => (
+                <span key={coinId} className="note-card-coin">
+                  {coinId}
+                </span>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Dashboard() {
   const { logout } = useAuth();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [notes, setNotes] = useState([]);
+  const [notesLoading, setNotesLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,13 +82,31 @@ function Dashboard() {
     };
   }, [page]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getMyNotes()
+      .then((response) => {
+        if (!cancelled) setNotes(response.data);
+      })
+      .catch(() => {
+        if (!cancelled) setNotes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setNotesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
+    <>
     <main className="market">
       <h1>Crypto Tracker</h1>
-      <Link to="/notes/new">Nueva nota</Link>{" "}
-      <button type="button" onClick={logout}>
-        Cerrar sesión
-      </button>
+      <Link to="/notes/new">+ Nueva nota</Link>
+
+      <NotesSummary notes={notes} loading={notesLoading} />
 
       {loading && <p>Cargando datos de mercado...</p>}
       {error && <p role="alert">{error}</p>}
@@ -117,6 +169,12 @@ function Dashboard() {
         </>
       )}
     </main>
+    <footer className="page-footer">
+      <button type="button" onClick={logout}>
+        Cerrar sesión
+      </button>
+    </footer>
+    </>
   );
 }
 
