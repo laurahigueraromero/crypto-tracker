@@ -103,8 +103,12 @@ function Dashboard() {
   return (
     <>
     <main className="market">
-      <h1>Crypto Tracker</h1>
-      <Link to="/notes/new">+ Nueva nota</Link>
+      <div className="dashboard-header">
+        <h1>Crypto Tracker</h1>
+        <Link to="/notes/new" className="btn btn-primary btn-primary-round">
+          Crear nota
+        </Link>
+      </div>
 
       <NotesSummary notes={notes} loading={notesLoading} />
 

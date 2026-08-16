@@ -93,7 +93,7 @@ function Register() {
 
         {serverError && <p role="alert">{serverError}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button type="submit" className="btn-primary" disabled={submitting}>
           {submitting ? "Creando cuenta..." : "Registrarme"}
         </button>
 

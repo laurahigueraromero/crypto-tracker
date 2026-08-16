@@ -63,7 +63,7 @@ function Login() {
 
         {error && <p role="alert">{error}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button type="submit" className="btn-primary" disabled={submitting}>
           {submitting ? "Entrando..." : "Entrar"}
         </button>
 

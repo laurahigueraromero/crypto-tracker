@@ -133,7 +133,7 @@ function NewNote() {
 
         {serverError && <p role="alert">{serverError}</p>}
 
-        <button type="submit" className="note-submit" disabled={submitting}>
+        <button type="submit" className="note-submit btn-primary" disabled={submitting}>
           {submitting ? "Guardando..." : "Guardar nota"}
         </button>
       </form>
