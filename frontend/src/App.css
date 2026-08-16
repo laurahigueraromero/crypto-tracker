@@ -336,13 +336,18 @@ button:disabled {
 }
 
 .market-table-wrapper {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 8px;
+  box-sizing: border-box;
 }
 
 .market-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 15px;
   white-space: nowrap;
