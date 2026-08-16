@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getCryptoMarkets } from "../api/cryptos";
 import Sparkline from "../components/Sparkline";
 import { useAuth } from "../context/AuthContext";
@@ -50,6 +51,7 @@ function Dashboard() {
   return (
     <main className="market">
       <h1>Crypto Tracker</h1>
+      <Link to="/notes/new">Nueva nota</Link>{" "}
       <button type="button" onClick={logout}>
         Cerrar sesión
       </button>

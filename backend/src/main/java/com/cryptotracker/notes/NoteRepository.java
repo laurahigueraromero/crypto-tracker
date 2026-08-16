@@ -1,0 +1,7 @@
+package com.cryptotracker.notes;
+
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface NoteRepository extends JpaRepository<Note, UUID> {
+}
