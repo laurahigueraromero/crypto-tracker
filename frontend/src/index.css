@@ -62,8 +62,13 @@
   filter: invert(1) brightness(2);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
+  overflow-x: hidden;
 }
 
 #root {
@@ -76,6 +81,13 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* Flex items default to min-width:auto (their content's intrinsic size),
+   which can force the whole page to overflow horizontally on narrow
+   viewports. Let each top-level page section shrink below that. */
+#root > * {
+  min-width: 0;
 }
 
 h1,

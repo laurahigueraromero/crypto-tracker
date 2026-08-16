@@ -1,8 +1,10 @@
 import axios from "axios";
 import { clearTokens, getAccessToken } from "./tokenStorage";
 
+const defaultBaseURL = `${window.location.protocol}//${window.location.hostname}:8080/api`;
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || defaultBaseURL,
 });
 
 apiClient.interceptors.request.use((config) => {

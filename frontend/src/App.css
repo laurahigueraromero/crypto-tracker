@@ -26,7 +26,7 @@
 
 .dashboard-header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
   align-items: center;
   gap: 16px;
 }
@@ -34,6 +34,7 @@
 .dashboard-header .brand-title {
   grid-column: 2;
   margin: 24px 0;
+  min-width: 0;
 }
 
 .dashboard-header .btn-primary-round {
@@ -43,7 +44,7 @@
 
 @media (max-width: 640px) {
   .dashboard-header {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
   }
 
@@ -58,11 +59,18 @@
   font-family: "Press Start 2P", var(--heading);
   font-weight: 400;
   line-height: 1.5;
+  overflow-wrap: break-word;
 }
 
 .brand-title span {
   display: inline-block;
   margin-left: 10px;
+}
+
+@media (max-width: 480px) {
+  .brand-title {
+    font-size: 18px;
+  }
 }
 
 .notes-summary {
@@ -89,9 +97,10 @@
 
 .note-card-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: 12px;
+  gap: 4px 12px;
 }
 
 .note-card-type {
@@ -215,6 +224,18 @@ button:disabled {
   margin: 40px auto;
   padding: 24px;
   text-align: left;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    margin: 16px auto;
+    padding: 16px;
+  }
+
+  .auth-page form {
+    padding: 16px;
+  }
 }
 
 .auth-page form {
@@ -234,6 +255,17 @@ button:disabled {
   margin: 0 auto;
   padding: 24px;
   text-align: left;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .new-note {
+    padding: 16px;
+  }
+
+  .note-form {
+    padding: 16px;
+  }
 }
 
 .note-form {
@@ -267,6 +299,12 @@ button:disabled {
   overflow-y: auto;
 }
 
+@media (max-width: 480px) {
+  .coin-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .coin-checkbox {
   display: flex;
   align-items: center;
@@ -289,6 +327,12 @@ button:disabled {
   padding: 24px;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .market {
+    padding: 16px;
+  }
 }
 
 .market-table-wrapper {
@@ -364,8 +408,9 @@ button:disabled {
 
 .market-pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 16px;
+  gap: 12px 16px;
   margin-top: 16px;
 }
