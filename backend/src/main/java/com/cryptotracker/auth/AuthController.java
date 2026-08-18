@@ -28,4 +28,10 @@ public class AuthController {
     public ResponseEntity<AuthTokensResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
+    }
 }

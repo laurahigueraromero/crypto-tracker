@@ -31,6 +31,9 @@ class AuthControllerLoginTest {
     private UserRepository userRepository;
 
     @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -98,10 +101,34 @@ class AuthControllerLoginTest {
                 .andReturn().getResponse().getContentAsString();
         String accessToken = objectMapper.readTree(body).get("accessToken").asText();
 
-        // No controller is mapped to /api/users/me yet, so a valid token still hits a 404
-        // (proving the request passed authentication) rather than the 401 from the previous test.
         mockMvc.perform(get("/api/users/me")
                         .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void logoutRevokesTheRefreshToken() throws Exception {
+        LoginRequest loginRequest = new LoginRequest(userEmail, "Str0ngPass!");
+        String body = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andReturn().getResponse().getContentAsString();
+        String refreshToken = objectMapper.readTree(body).get("refreshToken").asString();
+
+        mockMvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"" + refreshToken + "\"}"))
+                .andExpect(status().isNoContent());
+
+        boolean anyRevoked = refreshTokenRepository.findAll().stream().anyMatch(RefreshToken::isRevoked);
+        org.junit.jupiter.api.Assertions.assertTrue(anyRevoked);
+    }
+
+    @Test
+    void logoutWithUnknownTokenIsStillNoContent() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"does-not-exist\"}"))
+                .andExpect(status().isNoContent());
     }
 }

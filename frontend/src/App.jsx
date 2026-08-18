@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NewNote from "./pages/NewNote";
+import Profile from "./pages/Profile";
 import "./App.css";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/notes/new" element={<NewNote />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -355,6 +355,9 @@ function Dashboard() {
       )}
     </main>
     <footer className="page-footer">
+      <Link to="/profile" className="btn">
+        Mi perfil
+      </Link>{" "}
       <button type="button" onClick={logout}>
         Cerrar sesión
       </button>

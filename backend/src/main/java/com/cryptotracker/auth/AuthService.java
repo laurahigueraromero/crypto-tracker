@@ -67,6 +67,14 @@ public class AuthService {
         return new AuthTokensResponse(accessToken, refreshToken, jwtService.getAccessTokenExpirySeconds());
     }
 
+    public void logout(LogoutRequest request) {
+        refreshTokenRepository.findByTokenHash(hash(request.refreshToken()))
+                .ifPresent(token -> {
+                    token.setRevoked(true);
+                    refreshTokenRepository.save(token);
+                });
+    }
+
     private String issueRefreshToken(User user) {
         byte[] randomBytes = new byte[32];
         SECURE_RANDOM.nextBytes(randomBytes);
