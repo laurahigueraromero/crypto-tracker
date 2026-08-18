@@ -144,6 +144,19 @@ function Dashboard() {
   }, [page]);
 
   useEffect(() => {
+    const intervalId = setInterval(() => {
+      getCryptoMarkets({ page, perPage: PER_PAGE, currency: "usd" })
+        .then((response) => setItems(response.data.items))
+        .catch(() => {
+          // Silent: keep showing the last known-good data instead of
+          // disrupting the view for a transient background refresh failure.
+        });
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [page]);
+
+  useEffect(() => {
     let cancelled = false;
     getMyNotes()
       .then((response) => {
