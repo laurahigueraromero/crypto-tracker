@@ -42,6 +42,11 @@
   justify-self: end;
 }
 
+.dashboard-header-profile {
+  grid-column: 1;
+  justify-self: start;
+}
+
 @media (max-width: 640px) {
   .dashboard-header {
     grid-template-columns: minmax(0, 1fr);
@@ -50,10 +55,21 @@
     margin-bottom: 24px;
   }
 
+  .dashboard-header .brand-title {
+    order: 1;
+  }
+
   .dashboard-header .btn-primary-round {
     grid-column: 1;
     justify-self: center;
     padding: 12px 28px;
+    order: 2;
+  }
+
+  .dashboard-header-profile {
+    grid-column: 1;
+    justify-self: center;
+    order: 3;
   }
 }
 

@@ -224,6 +224,9 @@ function Dashboard() {
     <>
     <main className="market">
       <div className="dashboard-header">
+        <Link to="/profile" className="btn dashboard-header-profile">
+          Mi perfil
+        </Link>
         <BrandTitle />
         <Link to="/notes/new" className="btn btn-primary btn-primary-round">
           Crear nota
@@ -355,9 +358,6 @@ function Dashboard() {
       )}
     </main>
     <footer className="page-footer">
-      <Link to="/profile" className="btn">
-        Mi perfil
-      </Link>{" "}
       <button type="button" onClick={logout}>
         Cerrar sesión
       </button>
