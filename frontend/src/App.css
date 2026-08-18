@@ -133,6 +133,68 @@
   padding: 2px 10px;
 }
 
+.watchlist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.watchlist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 10px;
+  background: var(--code-bg);
+}
+
+.watchlist-chip img {
+  border-radius: 50%;
+}
+
+.watchlist-chip-remove {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0 4px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.watchlist-chip-remove:hover {
+  color: var(--delta-bad);
+  background: transparent;
+}
+
+.star-button {
+  border: none;
+  background: transparent;
+  padding: 2px 6px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.star-button:hover {
+  background: transparent;
+  color: #eda100;
+}
+
+.star-button.is-watched {
+  color: #eda100;
+}
+
+.market-table td:has(.star-button) {
+  width: 1%;
+}
+
+.market-card-top .star-button {
+  margin-left: auto;
+}
+
 .note-card-delete {
   margin-top: 12px;
   font-size: 13px;

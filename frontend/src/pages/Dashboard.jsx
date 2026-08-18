@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCryptoMarkets } from "../api/cryptos";
 import { getMyNotes, deleteNote } from "../api/notes";
+import { getWatchlist, addToWatchlist, removeFromWatchlist } from "../api/watchlist";
 import Sparkline from "../components/Sparkline";
 import BrandTitle from "../components/BrandTitle";
 import { useAuth } from "../context/AuthContext";
@@ -22,6 +23,21 @@ const changeFormatter = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 2,
   signDisplay: "always",
 });
+
+function StarButton({ coinId, isWatched, pending, onToggle }) {
+  return (
+    <button
+      type="button"
+      className={"star-button" + (isWatched ? " is-watched" : "")}
+      disabled={pending}
+      onClick={() => onToggle(coinId)}
+      aria-label={isWatched ? "Quitar de mi watchlist" : "Añadir a mi watchlist"}
+      title={isWatched ? "Quitar de mi watchlist" : "Añadir a mi watchlist"}
+    >
+      {isWatched ? "★" : "☆"}
+    </button>
+  );
+}
 
 function NotesSummary({ notes, loading, onDelete, deletingId }) {
   if (loading) return null;
@@ -60,6 +76,37 @@ function NotesSummary({ notes, loading, onDelete, deletingId }) {
   );
 }
 
+function WatchlistSummary({ watchlist, loading, marketItems, pendingIds, onToggle }) {
+  if (loading) return null;
+  if (watchlist.length === 0) return null;
+
+  return (
+    <section className="notes-summary">
+      <h2>Mi watchlist</h2>
+      <div className="watchlist-chips">
+        {watchlist.map((entry) => {
+          const marketItem = marketItems.find((item) => item.coinId === entry.coinId);
+          return (
+            <span key={entry.coinId} className="watchlist-chip">
+              {marketItem?.image && <img src={marketItem.image} alt="" width={18} height={18} />}
+              {marketItem ? `${marketItem.name} (${marketItem.symbol.toUpperCase()})` : entry.coinId}
+              <button
+                type="button"
+                className="watchlist-chip-remove"
+                disabled={pendingIds.has(entry.coinId)}
+                onClick={() => onToggle(entry.coinId)}
+                aria-label={`Quitar ${entry.coinId} de mi watchlist`}
+              >
+                ×
+              </button>
+            </span>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Dashboard() {
   const { logout } = useAuth();
   const [page, setPage] = useState(1);
@@ -70,6 +117,10 @@ function Dashboard() {
   const [notes, setNotes] = useState([]);
   const [notesLoading, setNotesLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+
+  const [watchlist, setWatchlist] = useState([]);
+  const [watchlistLoading, setWatchlistLoading] = useState(true);
+  const [pendingWatchlistIds, setPendingWatchlistIds] = useState(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +161,24 @@ function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    getWatchlist()
+      .then((response) => {
+        if (!cancelled) setWatchlist(response.data.items);
+      })
+      .catch(() => {
+        if (!cancelled) setWatchlist([]);
+      })
+      .finally(() => {
+        if (!cancelled) setWatchlistLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleDeleteNote(noteId) {
     if (!window.confirm("¿Seguro que quieres eliminar esta nota? Esta acción no se puede deshacer.")) {
       return;
@@ -125,6 +194,31 @@ function Dashboard() {
       setDeletingId(null);
     }
   }
+
+  async function handleToggleWatchlist(coinId) {
+    const isWatched = watchlist.some((entry) => entry.coinId === coinId);
+    setPendingWatchlistIds((prev) => new Set(prev).add(coinId));
+
+    try {
+      if (isWatched) {
+        await removeFromWatchlist(coinId);
+        setWatchlist((prev) => prev.filter((entry) => entry.coinId !== coinId));
+      } else {
+        const response = await addToWatchlist(coinId);
+        setWatchlist((prev) => [response.data, ...prev.filter((entry) => entry.coinId !== coinId)]);
+      }
+    } catch {
+      window.alert("No se pudo actualizar la watchlist. Inténtalo de nuevo.");
+    } finally {
+      setPendingWatchlistIds((prev) => {
+        const next = new Set(prev);
+        next.delete(coinId);
+        return next;
+      });
+    }
+  }
+
+  const watchedCoinIds = new Set(watchlist.map((entry) => entry.coinId));
 
   return (
     <>
@@ -143,6 +237,14 @@ function Dashboard() {
         deletingId={deletingId}
       />
 
+      <WatchlistSummary
+        watchlist={watchlist}
+        loading={watchlistLoading}
+        marketItems={items}
+        pendingIds={pendingWatchlistIds}
+        onToggle={handleToggleWatchlist}
+      />
+
       {loading && <p>Cargando datos de mercado...</p>}
       {error && <p role="alert">{error}</p>}
 
@@ -152,6 +254,7 @@ function Dashboard() {
             <table className="market-table">
               <thead>
                 <tr>
+                  <th></th>
                   <th>#</th>
                   <th>Moneda</th>
                   <th>Precio</th>
@@ -162,6 +265,14 @@ function Dashboard() {
               <tbody>
                 {items.map((item, index) => (
                   <tr key={item.coinId}>
+                    <td>
+                      <StarButton
+                        coinId={item.coinId}
+                        isWatched={watchedCoinIds.has(item.coinId)}
+                        pending={pendingWatchlistIds.has(item.coinId)}
+                        onToggle={handleToggleWatchlist}
+                      />
+                    </td>
                     <td>{(page - 1) * PER_PAGE + index + 1}</td>
                     <td>
                       <div className="market-coin">
@@ -202,6 +313,12 @@ function Dashboard() {
                     <span>{item.name}</span>
                     <span className="market-symbol">{item.symbol}</span>
                   </div>
+                  <StarButton
+                    coinId={item.coinId}
+                    isWatched={watchedCoinIds.has(item.coinId)}
+                    pending={pendingWatchlistIds.has(item.coinId)}
+                    onToggle={handleToggleWatchlist}
+                  />
                 </div>
                 <div className="market-card-sparkline">
                   <Sparkline data={item.sparkline7d} width={280} height={40} />
